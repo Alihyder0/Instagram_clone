@@ -12,15 +12,31 @@ class AuthMethods {
 
 
   Future<model.User> getUserDetails() async{
-     User currentUser = _auth.currentUser!;
+    //  User currentUser = _auth.currentUser!;
 
-     DocumentSnapshot snapshot = await _firestore.collection('users').doc(currentUser.uid).get();
-     //this snapshot get uid
+    //  DocumentSnapshot snapshot = await _firestore.collection('users').doc(currentUser.uid).get();
+    //  //this snapshot get uid
 
-      //assigning to that this is an uid or etc;
-      //called the Key of that value
-     return model.User.fromSnap(snapshot);
-     //and give it to this to get the value
+    //   //assigning to that this is an uid or etc;
+    //   //called the Key of that value
+    //  return model.User.fromSnap(snapshot);
+    //  //and give it to this to get the value
+    try {
+      User currentUser = _auth.currentUser!;
+      DocumentSnapshot<Map<String,dynamic>> snapshot = await _firestore.collection('users').doc(currentUser.uid).get();
+      print('this is from userDetail ${snapshot}');
+
+      if (snapshot.exists) {
+        model.User userdata = model.User.fromSnap(snapshot);
+        print('this is userdata: $userdata');
+        return userdata;
+      } else {
+        throw Exception("User document not found"); // Handle case where document doesn't exist
+      }
+    } catch (error) {
+      print("Error getting user details: $error");
+      rethrow; // Rethrow the error for further handling (optional)
+    }
   }
 
   Future<String> signUpUser(
@@ -50,7 +66,6 @@ class AuthMethods {
                 bio: bio,
                 follower: [],
                 following: [],
-                password: password,
                 photoUrl: photoUrl,
                 uid: usercredential.user!.uid);
 
@@ -86,5 +101,10 @@ class AuthMethods {
     }
 
     return res;
+  }
+
+  Future<void> signOut()async{
+    await _auth.signOut();
+
   }
 }
